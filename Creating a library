@@ -1,0 +1,192 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <math.h>
+
+typedef struct book {
+	int creation_date;
+	int isbn;
+} Book;
+typedef struct library {
+	Book *first_book;
+	Book *second_book;
+	Book *third_book;
+	int times_borrowed;
+} Library;
+
+
+void free_libary (Library * library);
+void Print_times_borrowed(Library const *lb);
+void Add_Book(Library * lb, int creation_date, int isbn);
+
+
+void Print_times_borrowed(Library const *lb)
+{
+	printf("The amount of times a book was taken is: %d\n", lb->times_borrowed);
+}
+
+
+void Add_Book(Library * lb, int creation_date, int isbn)
+{
+    Book * bk = (Book *) malloc(sizeof(Book));
+	if(bk == NULL)
+	{
+		printf("Failed creating a library");
+		free_libary(lb);
+		exit(1);
+	}
+	else
+	{
+    	bk->creation_date = creation_date;
+    	bk->isbn = isbn;
+	}
+    if (lb->first_book == NULL)
+    {
+        lb->first_book = bk;
+		printf("The book was successfully added\n");
+		return;
+    }
+    if(lb->second_book == NULL)
+	{
+		if(lb->first_book->isbn != isbn)
+		{
+        	lb->second_book = bk;
+			printf("The book was successfully added\n");
+			return;
+		}
+		else
+		{
+			printf("The book already exists in the library\n");
+			free(bk);
+			return;
+		}
+	}
+    if(lb->third_book == NULL)
+	{
+		if(lb->second_book->isbn != isbn && lb->first_book->isbn != isbn)
+		{
+        	lb->third_book = bk;
+			printf("The book was successfully added\n");
+			return;
+		}
+		else
+		{
+			printf("The book already exists in the library\n");
+			free(bk);
+			return;
+		}
+	}
+	return;
+}
+
+int Borrow_A_Book(Library * lb, int isbn) // Every time I check if the fields in the library are empty. if they are empty the function returns.
+{
+	int a = -1;
+	if (lb->first_book == NULL)
+		return a;
+	else
+	{
+		if(lb->first_book->isbn == isbn)
+		{
+		lb->times_borrowed+=1;
+		a = 1;
+		return a;
+		}
+	}
+	if(lb->second_book == NULL)
+		return a;
+	else
+	{
+		if(lb->second_book->isbn == isbn)
+		{
+		lb->times_borrowed+=1;
+		a = 1;
+		return a;			
+		}
+	}
+	if(lb->third_book == NULL)
+		return a;
+	else
+	{
+		if(lb->third_book->isbn == isbn)
+		{
+		lb->times_borrowed+=1;
+		a = 1;
+		return a;
+		}
+	}
+	return a; // I use it to choose what to print after the function.
+}
+
+void free_libary (Library * lb)
+{
+     if (lb->first_book != NULL)
+     {
+         free(lb->first_book);
+     }
+      if (lb->second_book != NULL)
+     {
+         free(lb->second_book);
+    }
+     if (lb->third_book != NULL)
+    {
+        free(lb->third_book);
+    }
+}
+
+int main()
+{
+    int select;
+    int isbn = -1;
+    Library * lb;
+	lb->first_book = NULL;
+	lb->second_book = NULL;
+	lb->third_book = NULL;
+	lb->times_borrowed = 0;
+
+    while (select != 4)
+    {
+    printf("Library menu:\n");
+	printf("1. Add a book\n");
+	printf("2. Take a book\n");
+	printf("3. Print how many times books were borrowed from the library\n");
+	printf("4. Quit\n");
+    printf("Please choose the desired option [1-4]: ");
+
+    scanf("%d", &select);
+        if (select == 1)
+        {
+			if (lb->first_book != NULL && lb->second_book != NULL && lb->third_book != NULL)
+			{
+				printf("Sorry! You can't add more books, maximum capacity\n");
+			}
+			else
+			{
+        		int creation_date = -1;
+        		printf("Please enter year of creation: ");
+        		scanf("%d", &creation_date);
+        		printf("Please enter book isbn: ");
+        		scanf("%d", &isbn);
+        		Add_Book(lb, creation_date, isbn);
+        	}
+		}
+        else if (select == 2)
+        {
+        	printf("Please enter book isbn you wish to take: ");
+        	scanf("%d", &isbn);
+			int a = Borrow_A_Book(lb, isbn);
+        	if(a == -1)
+				printf("Im sorry we don't have this book\n");
+			else
+				printf("Enjoy the book\n");
+		}
+        else if (select == 3)
+        {
+            Print_times_borrowed(lb);
+        }
+    }
+	free_libary(lb);
+	printf("Goodbye\n");
+	return 0;
+}
