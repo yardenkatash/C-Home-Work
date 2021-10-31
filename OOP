@@ -1,0 +1,228 @@
+''' Exercise #8. Python Programming.'''
+##################################################################################
+# Question 1 - do not delete this comment
+##################################################################################
+# Write the classes of question 1 below this line
+class Student:
+    def __init__(self, name, id, courses):
+        self.name = name
+        self.id = id
+        self.courses = courses
+        lst = courses.values()
+        for tup in lst:
+            if tup[1] > 100 or tup[1] < 0:
+                raise ValueError("Value error: The grade " + str(tup[1]) + " is not between 0-100")
+
+    def __repr__(self):
+        rep = "Name: " + self.name + "\nId: " + str(self.id) + "\nCourses list: "
+        sortedLst = sorted(self.courses.keys())
+        for course in sortedLst:
+            rep += str(course) + " " + str(self.courses[course][0]) + " " + str(self.courses[course][1]) + " "
+        return rep.rstrip()
+
+    def get_average(self):
+        av_G = 0
+        c = 0
+        for grade in self.courses.values():
+            av_G += grade[0] * grade[1]
+            c += grade[0]
+        av_G = av_G/c
+        return av_G
+
+class GradStudent(Student):
+    def __init__(self, name, id, courses, degree):
+        Student.__init__(self, name, id, courses)
+        self.degree = degree
+    def __repr__(self):
+        rep = Student.__repr__(self)
+        rep += "\nDegree: " + self.degree
+        return rep
+    def get_average(self):
+        avG = Student.get_average(self)
+        if self.degree == "msc":
+            avG *= 1.05
+        else:
+            avG *= 1.15
+        if avG > 100:
+            avG = 100.0
+        return avG
+
+class InternationalStudent(Student):
+    def __init__(self, name, id, courses):
+        self.interCourses = courses
+        lst = self.interCourses.items()
+        localCourses = {}
+        for tup in lst:
+            if tup[1][1] == "A":
+                localCourses[tup[0]] = (tup[1][0], 100)
+            elif tup[1][1] == "B":
+                localCourses[tup[0]] = (tup[1][0], 90)
+            elif tup[1][1] == "C":
+                localCourses[tup[0]] = (tup[1][0], 80)
+            elif tup[1][1] == "D":
+                localCourses[tup[0]] = (tup[1][0], 70)
+            elif tup[1][1] == "F":
+                localCourses[tup[0]] = (tup[1][0], 60)
+            else:
+                raise ValueError("Invalid American grade")
+        self.localCourses = localCourses
+        Student.__init__(self, name, id, self.localCourses)
+
+    def get_average(self):
+        self.courses = self.localCourses
+        avG = Student.get_average(self)
+        return avG
+
+    def __repr__(self):
+        self.courses = self.interCourses
+        return Student.__repr__(self)
+
+class Faculty():
+    def __init__(self, name, students):
+        self.name = name
+        self.students = students
+    def __repr__(self):
+        rep = "Faculty of " + self.name + "\n"
+        dic = {}
+        for stud in self.students:
+            for course in stud.courses:
+                if course not in dic:
+                    dic[course] = 1
+                else:
+                    dic[course] += 1
+        lst = dic.keys()
+        sortedlst = sorted(lst, key = dic.get, reverse=True)
+        for i in sortedlst:
+            rep += i + " - " + str(dic[i]) + " students\n"
+        return rep
+
+# # Use this code to test your implementation:
+A = Student('Or', '123456789', {'calculus': (7, 80), 'algebra': (7, 90), 'programming': (4, 100)})
+print(A)
+print(A.get_average())
+
+B = GradStudent('Guy', '987654321', {'calculus': (7, 84), 'quantummechanics': (4, 95), 'imageprocessing': (4, 90)}, 'msc')
+print(B)
+print(B.get_average())
+
+C = GradStudent('Dan', '192837465', {'phdseminar': (4, 95), 'programming': (4, 90)}, 'phd')
+print(C)
+print(C.get_average())
+
+D = InternationalStudent('Nadav', '220376541', {'calculus': (7, 'A'), 'babies 101': (2, 'C')})
+print(D)
+print(D.get_average())
+
+E = Faculty('engineering', [A, B, C, D])
+print(E)
+
+
+
+##################################################################################
+# Question 2 - do not delete this comment
+##################################################################################
+# Write the classes of question 2 below this line
+
+class PrintOrder:
+    def __init__(self, client_name, copies):
+        self.client_name = client_name
+        self.copies = copies
+        if len(self.client_name) == 0 or self.copies < 1:
+            raise ValueError("Invalid input")
+
+    def __repr__(self):
+        return "Client name: " + self.client_name + ", Copies: " + str(self.copies)
+
+    def calc_cost(self):
+        return self.copies
+
+class PosterOrder(PrintOrder):
+    def __init__(self, client_name, copies, size):
+        PrintOrder.__init__(self, client_name, copies)
+        self.size = size
+        if len(self.size) != 2 or self.size[0] < 1 or self.size[1] < 1:
+            raise ValueError("Invalid poster size")
+
+    def __repr__(self):
+        rep = "Poster order: " + PrintOrder.__repr__(self) + ", Size: " + str(self.size)
+        return rep
+
+    def calc_cost(self):
+        return str(30 * self.size[0]*self.size[1] * PrintOrder.calc_cost(self))
+
+
+class LetterOrder(PrintOrder):
+    def __init__(self, client_name, copies, paper_type, paper_prices):
+        PrintOrder.__init__(self, client_name, copies)
+        self.paper_type = paper_type
+        self.paper_prices = paper_prices
+        if paper_type not in paper_prices.keys():
+            raise ValueError("Invalid paper type")
+        
+    def __repr__(self):
+        rep = "Letter order: " + PrintOrder.__repr__(self) + ", Paper type: " + str(self.paper_type)
+        return rep
+    
+    def calc_cost(self):
+        return str(PrintOrder.calc_cost(self)*self.paper_prices[self.paper_type])
+
+class PrintShop():
+    def __init__(self):
+        self.orders = []
+        self.revenues = 0
+
+    def add_order(self, order):
+        self.orders.append(order)
+
+    def print_next_order(self):
+        if len(self.orders) != 0:
+            self.revenues += int(self.orders[0].calc_cost())
+            self.orders.pop(0)
+
+    def __repr__(self):
+        dic = {}
+        rep = "Print shop orders: \n"
+        for order in self.orders:
+            if order.client_name not in dic:
+                dic[order.client_name] = 1
+            else:
+                dic[order.client_name] += 1
+        for client in dic:
+            rep += client + ": " + str(dic[client]) + " orders\n"
+        rep += "Revenues: " + str(self.revenues)
+        return rep
+
+
+##### Use this code to test your implementation:
+##poster1 = PosterOrder ("Dvir", 1, (1, 1))
+##print(poster1)
+####
+##paper_prices = {"A4 80gr": 3, "A5 100gr": 5}
+##letter1 = LetterOrder ("Danielle", 1, "A4 80gr", paper_prices)
+##print(letter1)
+####
+##letter2 = LetterOrder ("Roy", 1, "A5 100gr", paper_prices)
+##print(letter2)
+####
+##letter3 = LetterOrder ("Roy", 5, "A5 100gr", paper_prices)
+####
+##print(letter3)
+##print(poster1.calc_cost())
+##print(letter1.calc_cost())
+##print(letter2.calc_cost())
+##print(letter3.calc_cost())
+##print_shop = PrintShop()
+##print_shop.add_order(poster1)
+##print_shop.add_order(letter1)
+##print_shop.add_order(letter2)
+##print_shop.add_order(letter3)
+##print(print_shop)
+##print_shop.print_next_order()
+##print(print_shop)
+##print_shop.print_next_order()
+##print(print_shop)
+##print_shop.print_next_order()
+##print(print_shop)
+
+
+
