@@ -1,0 +1,88 @@
+#include <assert.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+const char *words[] = {
+	    "apple",
+	    "banana",
+	    "home"
+    };
+int main()
+{
+    srand(time(NULL));
+    int random_num = rand() % 3;
+    int size = strlen(words[random_num]);
+    char random_elem[size];
+    strcpy(random_elem, words[random_num]);
+    int len = strlen(random_elem); // Len of one of the words
+    char Word_To_Guess[len+1]; // The word the printed during the game
+    for (size_t g = 0; g < len; g++) // Setting the word to guess to '?????' 
+    {
+        Word_To_Guess[g]='?';
+    }
+    Word_To_Guess[len]='\0'; // In order to finish the array
+    char Letters_guessed[15]; // A word made of letters that the user already guessed.
+    //Maximum amount of letters guessed is 13 - 10 wrong letters plus 3 right letters, So the length is 15 for any case. 
+    for (size_t g = 0; g < 16; g++) // Setting the letters_guessed to nul characters 
+    {
+        Letters_guessed[g]='\0';
+    }
+    int Num_Of_Guesses = 10;
+    char guess;
+    char *location_Of_Guess; // Finds the first location of the letter in the word.
+    printf("%s (%d guesses remaining)\n", Word_To_Guess, Num_Of_Guesses);
+    int c = 0; // Counter for the letters_guessed
+    while(Num_Of_Guesses != 0)
+    {      
+        printf("Please enter a letter: ");
+        scanf("%c", &guess); 
+        while (getchar()!= '\n');   
+        if(!isalpha(guess))
+        {
+        printf("Your guess '%c' is not a letter.\n", guess);
+        continue;
+        }
+        if (guess >= 'A' && guess <= 'Z') // Checking if the letter is uppercase and if so - turning it into lowercase.
+        {
+            guess = tolower(guess); // Lower the guess letter.
+        }
+        if(strchr(Letters_guessed, guess) != NULL) // If equals to NULL than the letter is not found
+        {
+            printf("You already guessed '%c'.\n", guess);
+            continue;
+        }
+        location_Of_Guess = strchr(random_elem, guess); // Location of letter within the word
+        if(location_Of_Guess == NULL) // That means the letter is NOT within the word to guess
+        {
+            printf("No appearances of '%c'...\n", guess);
+            Num_Of_Guesses -= 1;
+            if(Num_Of_Guesses != 0)
+            printf("%s (%d guesses remaining)\n", Word_To_Guess, Num_Of_Guesses);
+        }
+        else // In case the user guessed correctly
+        {
+            printf("Good guess!\n");
+            for(int j = 0; j <= len; j++) // Finding all of the occurrences of the letter
+            {
+                if(random_elem[j] == guess)
+                    Word_To_Guess[j] = guess;
+            }
+
+        if(strchr(Word_To_Guess, '?') == NULL) // No more '?' left - the player wins the game!
+        {
+            printf("You win! the word is: %s\n", random_elem);
+            return 1;
+        }
+        else
+            printf("%s (%d guesses remaining)\n", Word_To_Guess, Num_Of_Guesses);
+        }
+        Letters_guessed[c] = guess; // The letter goes into the word of guesses.
+        c++;
+    }
+    printf("No more guesses remaining....you lost!\n");
+    return 0;
+}
